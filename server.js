@@ -1,19 +1,30 @@
 import express from "express";
 import nodemailer from "nodemailer";
 import cors from "cors";
+import bodyParser from "body-parser";
 
 const app = express();
-const PORT = process.env.PORT || 5000; // Use dynamic port for deployment
+const PORT = 5000;
 
-// Middleware
-app.use(cors({
-  origin: "https://my-portfolio-frontend-mocha.vercel.app/", // Replace with your actual Vercel frontend URL
-  methods: ["POST", "GET"],
-  credentials: true
-}));
-app.use(express.json()); // Parse JSON requests
+// Configure CORS to allow requests from your frontend
+const allowedOrigins = [
+  "https://my-portfolio-frontend-mocha.vercel.app", // Add your frontend URL here without trailing slash
+];
 
-// Email Sending Endpoint
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS policy: Not allowed"));
+      }
+    },
+  })
+);
+
+app.use(bodyParser.json());
+
 app.post("/send-email", async (req, res) => {
   const { name, email, message } = req.body;
 
@@ -22,30 +33,27 @@ app.post("/send-email", async (req, res) => {
     service: "gmail",
     auth: {
       user: "rohitsaundalkar322@gmail.com",
-      pass: "hadp jszw gtlz ivrl", // Replace with Gmail App Password
+      pass: "hadp jszw gtlz ivrl", // Use App Password for Gmail
     },
   });
 
-  // Email configuration
   const mailOptions = {
     from: email,
-    to: "rohitsaundalkar322@gmail.com", // Your email to receive messages
+    to: "rohitsaundalkar322@gmail.com",
     subject: `New message from ${name}`,
-    text: `You have received a new message from ${email}:\n\n${message}`,
+    text: message,
   };
 
-  // Send the email
   try {
     await transporter.sendMail(mailOptions);
     res.status(200).json({ message: "Email sent successfully!" });
   } catch (error) {
-    console.error("Error sending email:", error.message);
-    res.status(500).json({ message: "Failed to send email", error: error.message });
+    res.status(500).json({ message: "Failed to send email", error });
   }
 });
 
-// Start the server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
 
