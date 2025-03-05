@@ -3,18 +3,11 @@ import nodemailer from "nodemailer";
 import cors from "cors";
 
 const app = express();
-const PORT = process.env.PORT || 5000; // Use dynamic port for deployment
+const PORT = 5000;
 
-// Middleware
-app.use(cors({
-  origin: "https://my-portfolio-frontend-mocha.vercel.app", // Replace with your actual Vercel frontend URL
-  methods: ["POST", "GET" , "OPTIONS"],
-  credentials: true
-}));
-app.options("*", cors());
-app.use(express.json()); // Parse JSON requests
+app.use(cors());
+app.use(bodyParser.json());
 
-// Email Sending Endpoint
 app.post("/send-email", async (req, res) => {
   const { name, email, message } = req.body;
 
@@ -30,7 +23,7 @@ app.post("/send-email", async (req, res) => {
   // Email configuration
   const mailOptions = {
     from: email,
-    to: "rohitsaundalkar322@gmail.com", // Your email to receive messages
+    to: "rohitsaundalkar322@gmail.com", // Your email where you want to receive messages
     subject: `New message from ${name}`,
     text: `You have received a new message from ${email}:\n\n${message}`,
   };
@@ -49,3 +42,5 @@ app.post("/send-email", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+
