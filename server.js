@@ -1,34 +1,62 @@
 import express from "express";
 import nodemailer from "nodemailer";
 import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config(); // Load environment variables
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(bodyParser.json());
+// ✅ Allowed origins for CORS
+const allowedOrigins = [
+  "http://localhost:5173", // Local development
+  "https://my-portfolio-frontend-mocha.vercel.app" // Deployed frontend
+];
 
+// ✅ CORS Middleware (Fixed)
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS policy: Not allowed"));
+    }
+  },
+  methods: ["POST", "GET", "OPTIONS"],
+  credentials: true
+}));
+
+// ✅ Middleware to handle preflight OPTIONS requests
+app.options("*", cors());
+
+// ✅ Built-in JSON parser (no need for `body-parser`)
+app.use(express.json());
+
+// 📩 **Email Sending Endpoint**
 app.post("/send-email", async (req, res) => {
   const { name, email, message } = req.body;
 
-  // Setup transporter for Nodemailer
+  if (!name || !email || !message) {
+    return res.status(400).json({ message: "All fields are required!" });
+  }
+
+  // ✅ Nodemailer Transporter (Use Environment Variables)
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: "rohitsaundalkar322@gmail.com",
-      pass: "hadp jszw gtlz ivrl", // Replace with Gmail App Password
+      user: process.env.EMAIL_USER, // Use .env file
+      pass: process.env.EMAIL_PASS, // Use .env file
     },
   });
 
-  // Email configuration
   const mailOptions = {
     from: email,
-    to: "rohitsaundalkar322@gmail.com", // Your email where you want to receive messages
+    to: process.env.RECEIVER_EMAIL, // Use .env file for security
     subject: `New message from ${name}`,
     text: `You have received a new message from ${email}:\n\n${message}`,
   };
 
-  // Send the email
   try {
     await transporter.sendMail(mailOptions);
     res.status(200).json({ message: "Email sent successfully!" });
@@ -38,9 +66,7 @@ app.post("/send-email", async (req, res) => {
   }
 });
 
-// Start the server
+// 🚀 Start the Server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
-
-
