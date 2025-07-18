@@ -14,6 +14,8 @@ const allowedOrigins = [
   "https://my-portfolio-frontend-mocha.vercel.app" // Deployed frontend
 ];
 
+console.log("hello")
+
 // ✅ CORS Middleware (Fixed)
 app.use(cors({
   origin: (origin, callback) => {
@@ -26,6 +28,7 @@ app.use(cors({
   methods: ["POST", "GET", "OPTIONS"],
   credentials: true
 }));
+console.log("sheffsdcshcshdlhsd")
 
 // ✅ Middleware to handle preflight OPTIONS requests
 app.options("*", cors());
